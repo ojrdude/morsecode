@@ -50,7 +50,7 @@ class MorseCode(object):
         """
         try:
             return self._MORSE_CODE_MAP[letter.lower()]
-        except AttributeError:
+        except KeyError:
             #TODO: Log out that an invalid letter was received.
             pass
         

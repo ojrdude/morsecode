@@ -37,5 +37,10 @@ class TestMorseCode(unittest.TestCase):
             '-..-', '-.--', '--..', '--.-', '..-'
             ]), self._morseCode.wordToMorseCode('XyZQU'))
 
+
+    def testWordToMorseCodeIllegalChars(self):
+        self.assertEqual("", self._morseCode.wordToMorseCode('!#?@{}[]&%^"'))
+        self.assertEqual("......", self._morseCode.wordToMorseCode('H$i!'))
+
 if __name__ == '__main__':
     unittest.main()
