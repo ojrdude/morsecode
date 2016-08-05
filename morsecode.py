@@ -52,4 +52,18 @@ class MorseCode(object):
             return self._MORSE_CODE_MAP[letter.lower()]
         except AttributeError:
             #TODO: Log out that an invalid letter was received.
+            pass
+        
+    def wordToMorseCode(self, word):
+        """
+        Converts a word to Morse Code
+        """
+        result = ""
+        for letter in word:
+            try:
+                result += self._letterToMorseCode(letter)
+            except TypeError:
+                pass
+
+        return result
         
