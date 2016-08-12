@@ -1,12 +1,11 @@
 '''
 Unit tests for filewriter.py
 '''
-from _io import StringIO, BytesIO, TextIOWrapper
+from _io import BytesIO, TextIOWrapper
 import time
 import unittest
 
 from morsecode.filewriter.filewriter import FileWriter
-from io import TextIOBase
 
 
 class FileWriterTest(unittest.TestCase):

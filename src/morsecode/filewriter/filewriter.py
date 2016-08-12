@@ -1,7 +1,6 @@
 '''
 Takes a stream of letters and outputs to file.
 '''
-import re
 from threading import Thread, Event
 import time
 
@@ -34,7 +33,7 @@ class FileWriter(Thread):
         The main routine of the filewriter. Continuously listens to the
         stream of input. Opens a new file when a stream starts and flushes when AR is received.
         '''
-        while (not self._terminated.wait(0.1)):
+        while not self._terminated.wait(0.1):
             buffer = ''
             while self.performAction:
                 text = self._stream.read()
