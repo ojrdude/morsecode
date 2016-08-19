@@ -44,9 +44,9 @@ class Application(object):
                 print("Could not import GPIO", file=sys.stderr)
                 exit(1)
             GPIO.setmode(GPIO.BOARD)
-            GPIO.setup(4, GPIO.input)
+            GPIO.setup(7, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
             def morseKey():
-                return GPIO.input(4)
+                return GPIO.input(7)
         else:
             try:
                 import msvcrt
