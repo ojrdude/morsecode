@@ -29,7 +29,7 @@ class Application(object):
         Starts the application.
         """
         outputFilePath = self._config['output file']
-        directory = '/'.join((outputFilePath).split('/'))[:-1]
+        directory = '/'.join((outputFilePath).split('/')[:-1])
         os.makedirs(directory, exist_ok=True)
         outFile = open(outputFilePath, 'a')
         inputToOutputStream =  TextIOWrapper(BytesIO())
