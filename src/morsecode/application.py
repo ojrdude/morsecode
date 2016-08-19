@@ -62,6 +62,7 @@ class Application(object):
         try:
             inputReader.start()
             outputWriter.start()
+            outputWriter.performAction = True
             while True:
                 pass
         except KeyboardInterrupt:
