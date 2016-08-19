@@ -85,10 +85,28 @@ class InputReaderTest(unittest.TestCase):
         self.morseKey.state = False
         time.sleep(STANDARD_INTERVAL_SECONDS * WORD_GAP)
         
-        ar = LETTER_DICT['A'] + LETTER_DICT['B']
-        time.sleep(10)
-        expectedResult = "O W A I N AR"
-        self.fail('not yet implemented')
+        ar = LETTER_DICT['A'] + LETTER_DICT['R']
+        for dotOrDash in ar[:-1]:
+            self.morseKey.state = True
+            if dotOrDash == DOT:
+                time.sleep(STANDARD_INTERVAL_SECONDS * DOT_DURATION)
+            else:
+                time.sleep(STANDARD_INTERVAL_SECONDS * DASH_DURATION)
+            self.morseKey.state = False
+            time.sleep(STANDARD_INTERVAL_SECONDS * MID_LETTER_GAP)
+            
+        self.morseKey.state = True
+        if ar[-1] == DOT:
+            time.sleep(STANDARD_INTERVAL_SECONDS * DOT_DURATION)
+        else:
+            time.sleep(STANDARD_INTERVAL_SECONDS * DASH_DURATION)
+        self.morseKey.state = False
+        time.sleep(STANDARD_INTERVAL_SECONDS * WORD_GAP)
+        
+        time.sleep(1)
+        expectedResult = "O W A I N  AR"
+        self.outputStream.seek(0)
+        self.assertEqual(expectedResult, self.outputStream.read())
         
         
 STANDARD_INTERVAL_SECONDS = 0.1
@@ -101,7 +119,7 @@ LETTER_GAP = 3
 WORD_GAP = 7
 
 CODE_DICT = {
-               '-.': 'A',
+               '.-': 'A',
                '-...': 'B',
                '-.-.': 'C',
                '-..': 'D',
@@ -130,14 +148,14 @@ CODE_DICT = {
                }
 
 LETTER_DICT = {
-               'A': '-.',    
+               'A': '.-',    
                'B': '-...',  
                'C': '-.-.',  
                'D': '-..',   
                'E': '.',   
                'F': '..-.',  
                'G': '--.',  
-               'H': '....',  
+               'H': '....', 
                'I': '..',    
                'J': '.---', 
                'K': '-.-',   
