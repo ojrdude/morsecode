@@ -59,14 +59,15 @@ class InputReader(Thread):
         self._codeDict = codeToLetterDict
         self._outputStream = outputStream
         self._terminated = Event()
+        self._currentLetter = ''
         super(InputReader, self).__init__()
     
-    
+
     def run(self):
         """
         The main routine of the InputReader
         """
-        currentLetter = ''
+        self._currentLetter = ''
         lastState = False
         lastChangeTime = datetime.now()
         while not self._terminated.wait(0.01):
@@ -74,13 +75,9 @@ class InputReader(Thread):
             timeSinceLastChange = datetime.now() - lastChangeTime
             timeSinceLastChange = timeSinceLastChange.total_seconds() * 1000
             if timeSinceLastChange > self.STANDARD_DURATION_MS * self.REL_WORD_GAP * self._ERROR_MARGIN:
-                if len(currentLetter) == 0:
+                if len(self._currentLetter) == 0:
                     continue
-                try:
-                    self._outputStream.write(self.CODE_DICT[currentLetter])
-                    currentLetter = ''
-                except KeyError:
-                    self._outputStream.write("?{}?".format(currentLetter))
+                self._printCurrentLetter()
             
             if stateNow == lastState:
                 continue
@@ -93,21 +90,17 @@ class InputReader(Thread):
                 # End of a dot/dash
                 
                 if duration > self.STANDARD_DURATION_MS * self.REL_DOT_DURATION * self._ERROR_MARGIN:
-                    currentLetter += "-"
+                    self._currentLetter += "-"
                 else:
-                    currentLetter += "."
+                    self._currentLetter += "."
             
             else:
                 # End of a pause
                 if duration > self.STANDARD_DURATION_MS * self.REL_MID_LETTER_GAP * self._ERROR_MARGIN:
-                    if len(currentLetter) == 0:
+                    if len(self._currentLetter) == 0:
                         continue
                     
-                    try:
-                        self._outputStream.write(self.CODE_DICT[currentLetter])
-                        currentLetter = ''
-                    except KeyError:
-                        self._outputStream.write("?{}?".format(currentLetter))
+                    self._printCurrentLetter()
                     
                     self._outputStream.write(' ')
                     if duration > self.STANDARD_DURATION_MS * self.REL_LETTER_GAP * self._ERROR_MARGIN:
@@ -119,6 +112,16 @@ class InputReader(Thread):
                 
                 
             sys.stdout.flush()
+    
+    
+    def _printCurrentLetter(self):
+        try:
+            self._outputStream.write(self.CODE_DICT[self._currentLetter])
+            self._currentLetter = ''
+        except KeyError:
+            self._outputStream.write("?{}?".format(self._currentLetter))
+         
+    
     
     def terminate(self):
         """
