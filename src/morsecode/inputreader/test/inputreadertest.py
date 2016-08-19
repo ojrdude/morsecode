@@ -1,6 +1,6 @@
-'''
+"""
 Unit tests for input reader.
-'''
+"""
 from _io import TextIOWrapper, BytesIO
 import time
 import unittest
@@ -9,30 +9,30 @@ from morsecode.inputreader.inputreader import InputReader
 
 
 class InputReaderTest(unittest.TestCase):
-    '''
+    """
     Unit tests for the Input Reader class
-    '''
+    """
 
     class _MockMorseKey(object):
-        '''
+        """
         A mock of the GPIO morse key. Provides the
         input method that returns True (On) or False
         (Off) depending on internal state.
-        '''
+        """
         
         
         def __init__(self, startingState=False):
-            '''
+            """
             Constructor.
             :param:startingState: Whether the mock starts On (True) or Off (False)
-            '''
+            """
             self.state = startingState
         
             
         def getState(self):
-            '''
+            """
             Analogous to GPIO.input() allows the on/off to be polled
-            '''
+            """
             return self.state
         
         
@@ -85,9 +85,12 @@ class InputReaderTest(unittest.TestCase):
         self.morseKey.state = False
         time.sleep(STANDARD_INTERVAL_SECONDS * WORD_GAP)
         
-        
+        ar = LETTER_DICT['A'] + LETTER_DICT['B']
         time.sleep(10)
+        expectedResult = "O W A I N AR"
         self.fail('not yet implemented')
+        
+        
 STANDARD_INTERVAL_SECONDS = 0.1
 DOT = '.'
 DASH = '-'
@@ -152,7 +155,7 @@ LETTER_DICT = {
                'W': '.--',  
                'X': '-..-',  
                'Y': '-..-',  
-               'Z': '--..',  
+               'Z': '--..',
                }
 
 if __name__ == "__main__":

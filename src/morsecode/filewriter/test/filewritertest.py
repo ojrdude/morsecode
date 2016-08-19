@@ -1,6 +1,6 @@
-'''
+"""
 Unit tests for filewriter.py
-'''
+"""
 from _io import BytesIO, TextIOWrapper
 import time
 import unittest
@@ -9,9 +9,9 @@ from morsecode.filewriter.filewriter import FileWriter
 
 
 class FileWriterTest(unittest.TestCase):
-    '''
+    """
     Unit test for FileWriter Class
-    '''
+    """
 
 
     def setUp(self):
@@ -41,10 +41,10 @@ class FileWriterTest(unittest.TestCase):
         
         
     def testWordEndingInAR(self):
-        '''
+        """
         Test that when a word ends in AR (not the msg end) we still get rest of message
         without line break.
-        '''
+        """
         word = 'R A D A R AR'
         expectedOutput = 'RADAR\n\n'
         self._feedInInput(word)
@@ -86,10 +86,10 @@ class FileWriterTest(unittest.TestCase):
         
         
     def _feedInInput(self, inputString):
-        '''
+        """
         Put in the string that the stream should contain, flush and return pointer
         to zero.
-        '''
+        """
         self.inputStream.write(inputString)
         self.inputStream.flush()
         self.inputStream.seek(0)
