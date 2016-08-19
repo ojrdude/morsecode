@@ -18,35 +18,6 @@ class InputReader(Thread):
     REL_WORD_GAP = 7
     STANDARD_DURATION_MS = 100
     _ERROR_MARGIN = 1.3
-    CODE_DICT = {
-               '.-': 'A',
-               '-...': 'B',
-               '-.-.': 'C',
-               '-..': 'D',
-               '.': 'E',
-               '..-.': 'F',
-               '--.': 'G',
-               '....': 'H',
-               '..': 'I',
-               '.---': 'J',
-               '-.-': 'K',
-               '.-..': 'L',
-               '--': 'M',
-               '-.': 'N',
-               '---': 'O',
-               '.--.': 'P',
-               '--.-': 'Q',
-               '.-.': 'R',
-               '...': 'S',
-               '-': 'T',
-               '..-': 'U',
-               '...-': 'V',
-               '.--': 'W',
-               '-..-': 'X',
-               '-..-': 'Y',
-               '--..': 'Z',
-               '.-.-.': 'AR'
-               }
 
     def __init__(self, morseSwitch, codeToLetterDict, outputStream):
         """
@@ -116,10 +87,10 @@ class InputReader(Thread):
     
     def _printCurrentLetter(self):
         try:
-            self._outputStream.write(self.CODE_DICT[self._currentLetter])
-            self._currentLetter = ''
+            self._outputStream.write(self._codeDict[self._currentLetter])
         except KeyError:
             self._outputStream.write("?{}?".format(self._currentLetter))
+        self._currentLetter = ''
          
     
     
