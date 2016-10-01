@@ -19,18 +19,18 @@ class InputReader(Thread):
     STANDARD_DURATION_MS = 100
     _ERROR_MARGIN = 1.3
 
-    def __init__(self, morseSwitch, codeToLetterDict, msgQueue):
+    def __init__(self, morse_switch, code_to_letter_dict, msg_queue):
         """
         Constructor
-        :param:morseSwitch: The function to poll for True or False such as GPIO.input().
-        :param:codeToLetterDict A dictionary of letters to interpret Morse code with.
-        :param:msgQueue The message queue to output to.
+        :param:morse_switch: The function to poll for True or False such as GPIO.input().
+        :param:code_to_letter_dict A dictionary of letters to interpret Morse code with.
+        :param:msg_queue The message queue to output to.
         """
-        self._morseSwitch = morseSwitch
-        self._codeDict = codeToLetterDict
-        self._msgQueue = msgQueue
+        self._morse_switch = morse_switch
+        self._codeDict = code_to_letter_dict
+        self._msg_queue = msg_queue
         self._terminated = Event()
-        self._currentLetter = ''
+        self._current_letter = ''
         super(InputReader, self).__init__()
     
 
@@ -38,44 +38,44 @@ class InputReader(Thread):
         """
         The main routine of the InputReader
         """
-        self._currentLetter = ''
-        lastState = False
-        lastChangeTime = datetime.now()
+        self._current_letter = ''
+        last_state = False
+        last_change_time = datetime.now()
         while not self._terminated.wait(0.01):
-            stateNow = self._morseSwitch()
-            timeSinceLastChange = datetime.now() - lastChangeTime
-            timeSinceLastChange = timeSinceLastChange.total_seconds() * 1000
-            if timeSinceLastChange > self.STANDARD_DURATION_MS * self.REL_WORD_GAP * self._ERROR_MARGIN:
-                if len(self._currentLetter) == 0:
+            state_now = self._morse_switch()
+            time_since_last_change = datetime.now() - last_change_time
+            time_since_last_change = time_since_last_change.total_seconds() * 1000
+            if time_since_last_change > self.STANDARD_DURATION_MS * self.REL_WORD_GAP * self._ERROR_MARGIN:
+                if len(self._current_letter) == 0:
                     continue
-                self._printCurrentLetter()
+                self._print_current_letter()
             
-            if stateNow == lastState:
+            if state_now == last_state:
                 continue
             
-            lastState = stateNow
-            duration = (datetime.now() - lastChangeTime)
+            last_state = state_now
+            duration = (datetime.now() - last_change_time)
             duration = duration.total_seconds() * 1000
-            lastChangeTime = datetime.now()
-            if not stateNow:
+            last_change_time = datetime.now()
+            if not state_now:
                 # End of a dot/dash
                 
                 if duration > self.STANDARD_DURATION_MS * self.REL_DOT_DURATION * self._ERROR_MARGIN:
-                    self._currentLetter += "-"
+                    self._current_letter += "-"
                 else:
-                    self._currentLetter += "."
+                    self._current_letter += "."
             
             else:
                 # End of a pause
                 if duration > self.STANDARD_DURATION_MS * self.REL_MID_LETTER_GAP * self._ERROR_MARGIN:
-                    if len(self._currentLetter) == 0:
+                    if len(self._current_letter) == 0:
                         continue
                     
-                    self._printCurrentLetter()
+                    self._print_current_letter()
                     
-                    self._msgQueue.put(' ')
+                    self._msg_queue.put(' ')
                     if duration > self.STANDARD_DURATION_MS * self.REL_LETTER_GAP * self._ERROR_MARGIN:
-                        self._msgQueue.put(' ')
+                        self._msg_queue.put(' ')
                      
                 else:   
                     # Mid-letter pause
@@ -85,12 +85,12 @@ class InputReader(Thread):
             sys.stdout.flush()
     
     
-    def _printCurrentLetter(self):
+    def _print_current_letter(self):
         try:
-            self._msgQueue.put(self._codeDict[self._currentLetter])
+            self._msg_queue.put(self._codeDict[self._current_letter])
         except KeyError:
-            self._msgQueue.put("?{}?".format(self._currentLetter))
-        self._currentLetter = ''
+            self._msg_queue.put("?{}?".format(self._current_letter))
+        self._current_letter = ''
          
     
     

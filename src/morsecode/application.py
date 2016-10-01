@@ -1,8 +1,6 @@
 """
 The Morse code application
 """
-from _io import TextIOWrapper, BytesIO
-from configparser import ConfigParser
 import os
 from queue import Queue
 import sys
@@ -14,42 +12,37 @@ from morsecode.inputreader.inputreader import InputReader
 
 class Application(object):
     
-    def __init__(self, configFile, stanza):
+    def __init__(self, output_file ):
         """
         Constructor
-        :param:configFile: The location of a config file for the application.
-        :param:stanza: The stanza of the config file to use.
+        :param:output_file: The file to output messages to.
         """
-        config = ConfigParser()
-        config.read(configFile)
-        self._config = {}
-        for item in config.items(stanza):
-            self._config[item[0]] = item[1]
+        self._output_file = output_file 
+
     
     def main(self):
         """
         Starts the application.
         """
-        outputFilePath = self._config['output file']
-        directory = '/'.join((outputFilePath).split('/')[:-1])
+        directory = '/'.join((self._output_file).split('/')[:-1])
         os.makedirs(directory, exist_ok=True)
-        outFile = open(outputFilePath, 'a')
-        msgQueue = Queue()
-        codeToLetterDict = self._readCodeToLetterDict()        
+        outFile = open(self._output_file, 'a')
+        msg_queue = Queue()
+        codeToLetterDict = self._read_code_to_letter_dict()        
         GPIO.setmode(GPIO.BOARD)
         GPIO.setup(7, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         
-        def morseKey():
+        def morse_key():
             return GPIO.input(7)
 
         
-        inputReader = InputReader(morseKey, codeToLetterDict, msgQueue)
-        outputWriter = FileWriter(msgQueue, outFile)
+        input_reader = InputReader(morseKey, codeToLetterDict, msg_queue)
+        outputWriter = FileWriter(msg_queue, outFile)
         
         try:
-            inputReader.start()
+            input_reader.start()
             outputWriter.start()
-            outputWriter.performAction = True
+            outputWriter.perform_action = True
             while True:
                 pass
         except KeyboardInterrupt:
@@ -57,7 +50,7 @@ class Application(object):
             exit(0)
             
             
-    def _readCodeToLetterDict(self):
+    def _read_code_to_letter_dict(self):
         """
         Read the code to letter map from file and return as dictionary
         """
@@ -83,10 +76,9 @@ class Application(object):
     
 if __name__ == '__main__':
     try:
-        configFile = sys.argv[1]
-        stanza = sys.argv[2]
+        output_file = sys.argv[1]
     except IndexError:
-        print('Not enough parameters given. Usage: python application.py configFileLocation stanza')
-        print('E.g. python application.py /home/raspberrypi/config raspberrypi') 
+        print('Not enough parameters given. Usage: python application.py output_file')
+        print('E.g. python application.py /home/raspberrypi/morsecodemessages') 
         sys.exit(1)
-    sys.exit(Application(configFile, stanza).main())
+    sys.exit(Application(output_file).main())

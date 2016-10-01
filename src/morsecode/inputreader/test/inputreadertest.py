@@ -29,7 +29,7 @@ class InputReaderTest(unittest.TestCase):
             self.state = startingState
         
             
-        def getState(self):
+        def get_state(self):
             """
             Analogous to GPIO.input() allows the on/off to be polled
             """
@@ -37,82 +37,82 @@ class InputReaderTest(unittest.TestCase):
         
         
     def setUp(self):
-        self.morseKey = self._MockMorseKey()
-        self.messageQueue = Queue()       
-        self.inputReader = InputReader(self.morseKey.getState, CODE_DICT, self.messageQueue)
-        self.inputReader.start()
+        self.morse_key = self._MockMorseKey()
+        self.message_queue = Queue()       
+        self.input_reader = InputReader(self.morse_key.get_state, CODE_DICT, self.message_queue)
+        self.input_reader.start()
         time.sleep(0.2) # So that the test definitely starts with Off detected
 
     def tearDown(self):
-        self.inputReader.terminate()
+        self.input_reader.terminate()
 
 
-    def testOwain(self):
+    def test_owain(self):
         for letter in 'OWAI':
             component = LETTER_DICT[letter]
-            for dotOrDash in component[:-1]:
-                self.morseKey.state = True
-                if dotOrDash == DOT:
+            for dot_or_dash in component[:-1]:
+                self.morse_key.state = True
+                if dot_or_dash == DOT:
                     time.sleep(STANDARD_INTERVAL_SECONDS * DOT_DURATION)
                 else:
                     time.sleep(STANDARD_INTERVAL_SECONDS * DASH_DURATION)
-                self.morseKey.state = False
+                self.morse_key.state = False
                 time.sleep(STANDARD_INTERVAL_SECONDS * MID_LETTER_GAP)
                 
-            self.morseKey.state = True
+            self.morse_key.state = True
             if component[-1] == DOT:
                 time.sleep(STANDARD_INTERVAL_SECONDS * DOT_DURATION)
             else:
                 time.sleep(STANDARD_INTERVAL_SECONDS * DASH_DURATION)
-            self.morseKey.state = False
+            self.morse_key.state = False
             time.sleep(STANDARD_INTERVAL_SECONDS * LETTER_GAP)
             
         component = LETTER_DICT['N']
-        for dotOrDash in component[:-1]:
-            self.morseKey.state = True
-            if dotOrDash == DOT:
+        for dot_or_dash in component[:-1]:
+            self.morse_key.state = True
+            if dot_or_dash == DOT:
                 time.sleep(STANDARD_INTERVAL_SECONDS * DOT_DURATION)
             else:
                 time.sleep(STANDARD_INTERVAL_SECONDS * DASH_DURATION)
-            self.morseKey.state = False
+            self.morse_key.state = False
             time.sleep(STANDARD_INTERVAL_SECONDS * MID_LETTER_GAP)
             
-        self.morseKey.state = True
+        self.morse_key.state = True
         if component[-1] == DOT:
             time.sleep(STANDARD_INTERVAL_SECONDS * DOT_DURATION)
         else:
             time.sleep(STANDARD_INTERVAL_SECONDS * DASH_DURATION)
-        self.morseKey.state = False
+        self.morse_key.state = False
         time.sleep(STANDARD_INTERVAL_SECONDS * WORD_GAP)
         
         ar = LETTER_DICT['A'] + LETTER_DICT['R']
-        for dotOrDash in ar[:-1]:
-            self.morseKey.state = True
-            if dotOrDash == DOT:
+        for dot_or_dash in ar[:-1]:
+            self.morse_key.state = True
+            if dot_or_dash == DOT:
                 time.sleep(STANDARD_INTERVAL_SECONDS * DOT_DURATION)
             else:
                 time.sleep(STANDARD_INTERVAL_SECONDS * DASH_DURATION)
-            self.morseKey.state = False
+            self.morse_key.state = False
             time.sleep(STANDARD_INTERVAL_SECONDS * MID_LETTER_GAP)
             
-        self.morseKey.state = True
+        self.morse_key.state = True
         if ar[-1] == DOT:
             time.sleep(STANDARD_INTERVAL_SECONDS * DOT_DURATION)
         else:
             time.sleep(STANDARD_INTERVAL_SECONDS * DASH_DURATION)
-        self.morseKey.state = False
+        self.morse_key.state = False
         time.sleep(STANDARD_INTERVAL_SECONDS * WORD_GAP)
         
         time.sleep(1)
-        expectedResult = "O W A I N  AR"
-        actualResult = ''
+        expected_result = "O W A I N  AR"
+        actual_result = ''
         try:
             for _ in range(1000): # Safer than while True
-                queueItem = self.messageQueue.get(block=False)
-                actualResult += queueItem
+                queue_item = self.message_queue.get(block=False)
+                actual_result += queue_item
         except Empty:
             pass
-        self.assertEqual(expectedResult, actualResult)
+        self.assertEqual(expected_result, actual_result)
         
 STANDARD_INTERVAL_SECONDS = 0.1
 DOT = '.'

@@ -2,29 +2,28 @@
 Takes a stream of letters and outputs to file.
 """
 from threading import Thread, Event
-import time
 from queue import Empty
 
 
 class FileWriter(Thread):
     """
-    The FileWriter listens to a stream of text. It flushes when it receives the AR end-of-message.
+    The FileWriter continuously polls a queue for text. It flushes when it receives the AR end-of-message.
     Because a word can contain the letters AR, the input to this class should put a space between every 
     letter. Use two spaces to represent a space between words. The AR is replaced in the output with a double
-    line break so that messages appear on seperate lines.   
+    line break so that messages appear on separate lines.   
     """
     
     END_OF_MESSAGE = 'AR'
 
-    def __init__(self, msgQueue, outputFile):
+    def __init__(self, msg_queue, output_file):
         """
         Constructor
-        :param:msgQueue A queue feeding messages in letters (i.e. not dots or dashes)
-        :param:outputFile A file handle to output to.
+        :param:msg_queue A queue feeding messages in letters (i.e. not dots or dashes)
+        :param:output_file A file handle to output to.
         """
-        self._msgQueue = msgQueue
-        self._output = outputFile
-        self.performAction = False
+        self._msg_queue = msg_queue
+        self._output = output_file
+        self.perform_action = False
         self._terminated = Event()
         super(FileWriter, self).__init__()
 
@@ -36,15 +35,15 @@ class FileWriter(Thread):
         """
         while not self._terminated.wait(0.1):
             buffer = ''
-            while self.performAction:
+            while self.perform_action:
                 try:
-                    buffer += self._msgQueue.get(block=False)
+                    buffer += self._msg_queue.get(block=False)
                 except Empty:
                     continue
                 if self.END_OF_MESSAGE in buffer:
                     messages = buffer.split(sep=self.END_OF_MESSAGE)
                     for message in messages[:-1]:
-                        message = self._trimSpacing(message)
+                        message = self._trim_spacing(message)
                         self._output.write(message + '\n\n')
                         self._output.flush()
                         buffer = messages[-1]  
@@ -57,21 +56,21 @@ class FileWriter(Thread):
         self._terminated.set()
 
     
-    def _trimSpacing(self, string):
+    def _trim_spacing(self, string):
         """
         Trim the spacing in the string so that single spaces are removed and
         double spaces become a single one.
         """
-        singleSpace = ' '
-        doubleSpace = '  '
+        single_space = ' '
+        double_space = '  '
         result = ''
         
-        words = string.split(doubleSpace)
+        words = string.split(double_space)
         for word in words:
-            result += word.replace(singleSpace, '')
-            result += singleSpace
-        while result.endswith(singleSpace):
+            result += word.replace(single_space, '')
+            result += single_space
+        while result.endswith(single_space):
             result = result[:-1]
-        while result.startswith(singleSpace):
+        while result.startswith(single_space):
             result = result[1:]
         return result

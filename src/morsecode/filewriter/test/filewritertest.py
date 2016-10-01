@@ -2,7 +2,7 @@
 Unit tests for filewriter.py
 """
 from _io import BytesIO, TextIOWrapper
-from queue import Queue
+from queue import Queue, Empty
 import time
 import unittest
 
@@ -16,95 +16,102 @@ class FileWriterTest(unittest.TestCase):
 
 
     def setUp(self):
-        self.msgQueue = Queue()
-        self.outputStream = TextIOWrapper(BytesIO())
-        self.fileWriter = FileWriter(self.msgQueue, self.outputStream)
-        self.fileWriter.start()
+        self.msg_queue = Queue()
+        self.output_stream = TextIOWrapper(BytesIO())
+        self.file_writer = FileWriter(self.msg_queue, self.output_stream)
+        self.file_writer.start()
 
 
     def tearDown(self):
-        self.fileWriter.performAction = False
-        self.fileWriter.terminate()
+        self.file_writer.perform_action = False
+        self.file_writer.terminate()
 
 
-    def testSingleWord(self):
-        singleWord = 'W O R D  AR'
-        expectedOut = 'WORD\n\n'
-        self._feedInInput(singleWord)
-        self._assertOutput(expectedOut)
+    def test_single_word(self):
+        single_word = 'W O R D  AR'
+        expected_out = 'WORD\n\n'
+        self._feed_in_input(single_word)
+        self._assert_output(expected_out)
         
         
-    def testTwoWords(self):
-        twoWords = 'T W O  W O R D S  AR'
-        expectedOutput = 'TWO WORDS\n\n'
-        self._feedInInput(twoWords)
-        self._assertOutput(expectedOutput)
+    def test_two_words(self):
+        two_words = 'T W O  W O R D S  AR'
+        expected_output = 'TWO WORDS\n\n'
+        self._feed_in_input(two_words)
+        self._assert_output(expected_output)
         
         
-    def testWordEndingInAR(self):
+    def test_word_ending_in_ar(self):
         """
         Test that when a word ends in AR (not the msg end) we still get rest of message
         without line break.
         """
         word = 'R A D A R AR'
-        expectedOutput = 'RADAR\n\n'
-        self._feedInInput(word)
-        self._assertOutput(expectedOutput)
+        expected_output = 'RADAR\n\n'
+        self._feed_in_input(word)
+        self._assert_output(expected_output)
 
 
-    def testTwoMessages(self):
+    def test_two_messages(self):
         messages = 'M E S S A G E  F O R  Y O U  AR  A N O T H E R  AR'
-        expectedOutput = 'MESSAGE FOR YOU\n\nANOTHER\n\n'
-        self._feedInInput(messages)
-        self._assertOutput(expectedOutput)
+        expected_output = 'MESSAGE FOR YOU\n\nANOTHER\n\n'
+        self._feed_in_input(messages)
+        self._assert_output(expected_output)
     
     
-    def testNumbers(self):
+    def test_numbers(self):
         message = 'I  A M  2 5 AR'
-        expectedOutput = 'I AM 25\n\n'
-        self._feedInInput(message)
-        self._assertOutput(expectedOutput)
+        expected_output = 'I AM 25\n\n'
+        self._feed_in_input(message)
+        self._assert_output(expected_output)
         
         
-    def testLeadingWhiteSpace(self):
-        oneSpaceStart = ' T R A I L I N G AR'
-        expectedOutput = 'TRAILING\n\n'
-        self._feedInInput(oneSpaceStart)
-        self._assertOutput(expectedOutput)
-        twoSpaceStart = '  T R A I L I N G AR'
-        self._feedInInput(twoSpaceStart)
-        self._assertOutput(expectedOutput)
+    def test_leading_white_space(self):
+        one_space_start = ' T R A I L I N G AR'
+        expected_output = 'TRAILING\n\n'
+        self._feed_in_input(one_space_start)
+        self._assert_output(expected_output)
+        two_space_start = '  T R A I L I N G AR'
+        self._feed_in_input(two_space_start)
+        self._assert_output(expected_output)
         
     
-    def testTrailingWhiteSpace(self):
-        oneSpaceEnd = 'E N D I N G AR '
-        expectedOutput = 'ENDING\n\n'
-        self._feedInInput(oneSpaceEnd)
-        self._assertOutput(expectedOutput)
-        twoSpaceEnd = 'E N D I N G AR  '
-        self._feedInInput(twoSpaceEnd)
-        self._assertOutput(expectedOutput)
+    def test_trailing_white_space(self):
+        one_space_end = 'E N D I N G AR '
+        expected_output = 'ENDING\n\n'
+        self._feed_in_input(one_space_end)
+        self._assert_output(expected_output)
+        two_space_end = 'E N D I N G AR  '
+        self._feed_in_input(two_space_end)
+        self._assert_output(expected_output)
         
         
-    def _feedInInput(self, inputString):
+    def _feed_in_input(self, input_string):
         """
         Put in the string characters onto the queue.
         """
-        for character in inputString:
-            self.msgQueue.put(character)
-        self.fileWriter.performAction = True
+        for _ in range(1000): # Safer than while True
+            try:
+                self.msg_queue.get(block=False)
+            except Empty:
+                break
+        for character in input_string:
+            self.msg_queue.put(character)
+        self.file_writer.perform_action = True
         
-    def _assertOutput(self, expectedOutput):
+    def _assert_output(self, expected_output):
         for x in range(20):
             try:
-                self.outputStream.seek(0)
-                self.assertEqual(expectedOutput, self.outputStream.read())
+                self.output_stream.seek(0)
+                self.assertEqual(expected_output, self.output_stream.read())
             except AssertionError:
                 if x > 8:
                     raise
                 time.sleep(0.1)
             else:
                 break
+        
+        self.output_stream.seek(0)
 
 if __name__ == "__main__":
     unittest.main()
