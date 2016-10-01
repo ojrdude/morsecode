@@ -28,7 +28,7 @@ class Application(object):
         os.makedirs(directory, exist_ok=True)
         outFile = open(self._output_file, 'a')
         msg_queue = Queue()
-        codeToLetterDict = self._read_code_to_letter_dict()        
+        code_to_letter_dict = self._read_code_to_letter_dict()        
         GPIO.setmode(GPIO.BOARD)
         GPIO.setup(7, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         
@@ -36,7 +36,7 @@ class Application(object):
             return GPIO.input(7)
 
         
-        input_reader = InputReader(morseKey, codeToLetterDict, msg_queue)
+        input_reader = InputReader(morse_key, code_to_letter_dict, msg_queue)
         outputWriter = FileWriter(msg_queue, outFile)
         
         try:
@@ -45,7 +45,7 @@ class Application(object):
             outputWriter.perform_action = True
             while True:
                 pass
-        except KeyboardInterrupt:
+        finally:
             outFile.close()
             exit(0)
             
