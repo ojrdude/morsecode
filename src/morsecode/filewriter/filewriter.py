@@ -3,6 +3,7 @@ Takes a stream of letters and outputs to file.
 """
 from threading import Thread, Event
 import time
+from queue import Empty
 
 
 class FileWriter(Thread):
@@ -15,13 +16,13 @@ class FileWriter(Thread):
     
     END_OF_MESSAGE = 'AR'
 
-    def __init__(self, inputStream, outputFile):
+    def __init__(self, msgQueue, outputFile):
         """
         Constructor
-        :param:inputStream A TextIO stream feeding messages in letters (i.e. not dots or dashes)
+        :param:msgQueue A queue feeding messages in letters (i.e. not dots or dashes)
         :param:outputFile A file handle to output to.
         """
-        self._stream = inputStream
+        self._msgQueue = msgQueue
         self._output = outputFile
         self.performAction = False
         self._terminated = Event()
@@ -30,25 +31,23 @@ class FileWriter(Thread):
         
     def run(self):
         """
-        The main routine of the filewriter. Continuously listens to the
-        stream of input. Opens a new file when a stream starts and flushes when AR is received.
+        The main routine of the filewriter. Continuously polls the message queue.
+        Opens a new file when a stream starts and flushes when AR is received.
         """
         while not self._terminated.wait(0.1):
             buffer = ''
             while self.performAction:
-                text = self._stream.read()
-                if text:
-                    buffer += text
-                    
-                    if self.END_OF_MESSAGE in buffer:
-                        messages = buffer.split(sep=self.END_OF_MESSAGE)
-                        for message in messages[:-1]:
-                            message = self._trimSpacing(message)
-                            self._output.write(message + '\n\n')
-                            self._output.flush()
-                        buffer = messages[-1]                      
-                else:
-                    time.sleep(0.1)
+                try:
+                    buffer += self._msgQueue.get(block=False)
+                except Empty:
+                    continue
+                if self.END_OF_MESSAGE in buffer:
+                    messages = buffer.split(sep=self.END_OF_MESSAGE)
+                    for message in messages[:-1]:
+                        message = self._trimSpacing(message)
+                        self._output.write(message + '\n\n')
+                        self._output.flush()
+                        buffer = messages[-1]  
                     
                 
     def terminate(self):

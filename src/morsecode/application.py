@@ -4,8 +4,10 @@ The Morse code application
 from _io import TextIOWrapper, BytesIO
 from configparser import ConfigParser
 import os
+from queue import Queue
 import sys
 
+import RPi.GPIO as GPIO
 from morsecode.filewriter.filewriter import FileWriter
 from morsecode.inputreader.inputreader import InputReader
 
@@ -32,32 +34,17 @@ class Application(object):
         directory = '/'.join((outputFilePath).split('/')[:-1])
         os.makedirs(directory, exist_ok=True)
         outFile = open(outputFilePath, 'a')
-        inputToOutputStream =  TextIOWrapper(BytesIO())
+        msgQueue = Queue()
+        codeToLetterDict = self._readCodeToLetterDict()        
+        GPIO.setmode(GPIO.BOARD)
+        GPIO.setup(7, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         
-        codeToLetterDict = self._readCodeToLetterDict()
-                 
-        morseKeyChoice = self._config['morse key']
-        if morseKeyChoice == 'gpio':
-            try:
-                import RPi.GPIO as GPIO
-            except RuntimeError:
-                print("Could not import GPIO", file=sys.stderr)
-                exit(1)
-            GPIO.setmode(GPIO.BOARD)
-            GPIO.setup(7, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-            def morseKey():
-                return GPIO.input(7)
-        else:
-            try:
-                import msvcrt
-            except RuntimeError:
-                print("Could not import msvcrt", file=sys.stderr)
-                exit(1)
-            def morseKey():
-                return msvcrt.kbhit()
+        def morseKey():
+            return GPIO.input(7)
+
         
-        inputReader = InputReader(morseKey, codeToLetterDict, inputToOutputStream)
-        outputWriter = FileWriter(inputToOutputStream, outFile)
+        inputReader = InputReader(morseKey, codeToLetterDict, msgQueue)
+        outputWriter = FileWriter(msgQueue, outFile)
         
         try:
             inputReader.start()

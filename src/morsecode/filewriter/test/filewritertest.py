@@ -2,6 +2,7 @@
 Unit tests for filewriter.py
 """
 from _io import BytesIO, TextIOWrapper
+from queue import Queue
 import time
 import unittest
 
@@ -15,9 +16,9 @@ class FileWriterTest(unittest.TestCase):
 
 
     def setUp(self):
-        self.inputStream = TextIOWrapper(BytesIO())
+        self.msgQueue = Queue()
         self.outputStream = TextIOWrapper(BytesIO())
-        self.fileWriter = FileWriter(self.inputStream, self.outputStream)
+        self.fileWriter = FileWriter(self.msgQueue, self.outputStream)
         self.fileWriter.start()
 
 
@@ -87,12 +88,10 @@ class FileWriterTest(unittest.TestCase):
         
     def _feedInInput(self, inputString):
         """
-        Put in the string that the stream should contain, flush and return pointer
-        to zero.
+        Put in the string characters onto the queue.
         """
-        self.inputStream.write(inputString)
-        self.inputStream.flush()
-        self.inputStream.seek(0)
+        for character in inputString:
+            self.msgQueue.put(character)
         self.fileWriter.performAction = True
         
     def _assertOutput(self, expectedOutput):

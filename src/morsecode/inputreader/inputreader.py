@@ -19,16 +19,16 @@ class InputReader(Thread):
     STANDARD_DURATION_MS = 100
     _ERROR_MARGIN = 1.3
 
-    def __init__(self, morseSwitch, codeToLetterDict, outputStream):
+    def __init__(self, morseSwitch, codeToLetterDict, msgQueue):
         """
         Constructor
         :param:morseSwitch: The function to poll for True or False such as GPIO.input().
         :param:codeToLetterDict A dictionary of letters to interpret Morse code with.
-        :param:outputStream The stream to output to.
+        :param:msgQueue The message queue to output to.
         """
         self._morseSwitch = morseSwitch
         self._codeDict = codeToLetterDict
-        self._outputStream = outputStream
+        self._msgQueue = msgQueue
         self._terminated = Event()
         self._currentLetter = ''
         super(InputReader, self).__init__()
@@ -73,9 +73,9 @@ class InputReader(Thread):
                     
                     self._printCurrentLetter()
                     
-                    self._outputStream.write(' ')
+                    self._msgQueue.put(' ')
                     if duration > self.STANDARD_DURATION_MS * self.REL_LETTER_GAP * self._ERROR_MARGIN:
-                        self._outputStream.write(' ')
+                        self._msgQueue.put(' ')
                      
                 else:   
                     # Mid-letter pause
@@ -87,9 +87,9 @@ class InputReader(Thread):
     
     def _printCurrentLetter(self):
         try:
-            self._outputStream.write(self._codeDict[self._currentLetter])
+            self._msgQueue.put(self._codeDict[self._currentLetter])
         except KeyError:
-            self._outputStream.write("?{}?".format(self._currentLetter))
+            self._msgQueue.put("?{}?".format(self._currentLetter))
         self._currentLetter = ''
          
     

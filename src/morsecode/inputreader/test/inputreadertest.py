@@ -1,7 +1,7 @@
 """
 Unit tests for input reader.
 """
-from _io import TextIOWrapper, BytesIO
+from queue import Queue, Empty
 import time
 import unittest
 
@@ -38,8 +38,8 @@ class InputReaderTest(unittest.TestCase):
         
     def setUp(self):
         self.morseKey = self._MockMorseKey()
-        self.outputStream = TextIOWrapper(BytesIO())       
-        self.inputReader = InputReader(self.morseKey.getState, CODE_DICT, self.outputStream)
+        self.messageQueue = Queue()       
+        self.inputReader = InputReader(self.morseKey.getState, CODE_DICT, self.messageQueue)
         self.inputReader.start()
         time.sleep(0.2) # So that the test definitely starts with Off detected
 
@@ -105,9 +105,14 @@ class InputReaderTest(unittest.TestCase):
         
         time.sleep(1)
         expectedResult = "O W A I N  AR"
-        self.outputStream.seek(0)
-        self.assertEqual(expectedResult, self.outputStream.read())
-        
+        actualResult = ''
+        try:
+            for _ in range(1000): # Safer than while True
+                queueItem = self.messageQueue.get(block=False)
+                actualResult += queueItem
+        except Empty:
+            pass
+        self.assertEqual(expectedResult, actualResult)
         
 STANDARD_INTERVAL_SECONDS = 0.1
 DOT = '.'
