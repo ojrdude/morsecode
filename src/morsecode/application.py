@@ -1,6 +1,7 @@
 """
 The Morse code application
 """
+from argparse import ArgumentParser
 import os
 from queue import Queue
 import sys
@@ -8,17 +9,21 @@ import sys
 import RPi.GPIO as GPIO
 from morsecode.filewriter.filewriter import FileWriter
 from morsecode.inputreader.inputreader import InputReader
+from morsecode.logging.logger import Logger
 
 
 class Application(object):
     
-    def __init__(self, output_file ):
+    LOG_FILE = '/var/log/morsecode/log.log'
+    
+    def __init__(self, output_file, debug=False):
         """
         Constructor
         :param:output_file: The file to output messages to.
         """
-        self._output_file = output_file 
-
+        self._output_file = output_file
+        self._debug_mode = debug
+        self._logger = Logger(self.LOG_FILE, debug)
     
     def main(self):
         """
@@ -26,7 +31,7 @@ class Application(object):
         """
         directory = '/'.join((self._output_file).split('/')[:-1])
         os.makedirs(directory, exist_ok=True)
-        outFile = open(self._output_file, 'a')
+        out_file = open(self._output_file, 'a')
         msg_queue = Queue()
         code_to_letter_dict = self._read_code_to_letter_dict()        
         GPIO.setmode(GPIO.BOARD)
@@ -36,17 +41,18 @@ class Application(object):
             return GPIO.input(7)
 
         
-        input_reader = InputReader(morse_key, code_to_letter_dict, msg_queue)
-        outputWriter = FileWriter(msg_queue, outFile)
+        input_reader = InputReader(morse_key, code_to_letter_dict, msg_queue,
+                                   logger=self._logger)
+        output_writer = FileWriter(msg_queue, out_file, logger=self._logger)
         
         try:
             input_reader.start()
-            outputWriter.start()
-            outputWriter.perform_action = True
+            output_writer.start()
+            output_writer.perform_action = True
             while True:
                 pass
         finally:
-            outFile.close()
+            out_file.close()
             exit(0)
             
             
@@ -67,18 +73,17 @@ class Application(object):
         Read the letter to code map from file and return as dictionary.
         """
         result = {}
-        with open('config/lettertocodedict', 'r') as ctlFile:
-            for line in ctlFile:
+        with open('config/lettertocodedict', 'r') as ctl_file:
+            for line in ctl_file:
                 parts = line.split("|")
                 result[parts[0]] = parts[1]
         return result
     
     
 if __name__ == '__main__':
-    try:
-        output_file = sys.argv[1]
-    except IndexError:
-        print('Not enough parameters given. Usage: python application.py output_file')
-        print('E.g. python application.py /home/raspberrypi/morsecodemessages') 
-        sys.exit(1)
-    sys.exit(Application(output_file).main())
+    arg_parser = ArgumentParser(prog='Morse Code', description='Morse Code Reader')
+    arg_parser.add_argument('-o', '--outputfile', default='/home/pi/morsecodemsgs/messages.txt',
+                            dest='output_file')
+    arg_parser.add_argument('-d', '--debug', default=False, dest='debug', type=bool)
+    args = arg_parser.parse_args()
+    sys.exit(Application(args.output_file, args.debug).main())

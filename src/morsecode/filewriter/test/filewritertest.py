@@ -5,6 +5,7 @@ from _io import BytesIO, TextIOWrapper
 from queue import Queue, Empty
 import time
 import unittest
+from unittest.mock import Mock
 
 from morsecode.filewriter.filewriter import FileWriter
 
@@ -13,12 +14,27 @@ class FileWriterTest(unittest.TestCase):
     """
     Unit test for FileWriter Class
     """
-
+    
+    class _MockLogObject(object):
+        """
+        A Mock Logger.
+        """
+        
+        def __init__(self):
+            self.loggedMessages = ''
+        
+        def log(self, application, message):
+            '''
+            Mockup of Logger.write()
+            '''
+            self.loggedMessages += message
 
     def setUp(self):
         self.msg_queue = Queue()
         self.output_stream = TextIOWrapper(BytesIO())
-        self.file_writer = FileWriter(self.msg_queue, self.output_stream)
+        self.logger = self._MockLogObject()
+        self.file_writer = FileWriter(self.msg_queue, self.output_stream,
+                                      logger=self.logger)
         self.file_writer.start()
 
 
@@ -84,11 +100,23 @@ class FileWriterTest(unittest.TestCase):
         two_space_end = 'E N D I N G AR  '
         self._feed_in_input(two_space_end)
         self._assert_output(expected_output)
-        
+    
+    def test_log_output(self):
+        self.assertFalse(self.logger.loggedMessages)
+        self._feed_in_input('yeah')
+        time.sleep(1)
+        for x in range(10):
+            try:
+                self.assertTrue(self.logger.loggedMessages, 'Nothing output to logger.')
+                return
+            except AssertionError:
+                if x > 8:
+                    raise
         
     def _feed_in_input(self, input_string):
         """
-        Put in the string characters onto the queue.
+        Put in the string characters onto the queue then start
+        the thread.
         """
         for _ in range(1000): # Safer than while True
             try:

@@ -15,15 +15,18 @@ class FileWriter(Thread):
     
     END_OF_MESSAGE = 'AR'
 
-    def __init__(self, msg_queue, output_file):
+    def __init__(self, msg_queue, output_file, logger, debug=False):
         """
         Constructor
         :param:msg_queue A queue feeding messages in letters (i.e. not dots or dashes)
         :param:output_file A file handle to output to.
+        :param:_logger: A logging class to send logs to.
         """
         self._msg_queue = msg_queue
         self._output = output_file
         self.perform_action = False
+        self._debug = debug
+        self._logger = logger
         self._terminated = Event()
         super(FileWriter, self).__init__()
 
@@ -36,17 +39,22 @@ class FileWriter(Thread):
         while not self._terminated.wait(0.1):
             buffer = ''
             while self.perform_action:
-                try:
-                    buffer += self._msg_queue.get(block=False)
-                except Empty:
-                    continue
+                
+                self._logger.log('FileWriter', 'Polling Message Queue')
+                buffer += self._msg_queue.get()
+                self._logger.log('FileWriter', 'Retrieved from Message Queue. Buffer = '
+                                 + buffer)
+                
                 if self.END_OF_MESSAGE in buffer:
+                    self._logger.log('FileWriter', 'AR in buffer')
                     messages = buffer.split(sep=self.END_OF_MESSAGE)
                     for message in messages[:-1]:
                         message = self._trim_spacing(message)
+                        self._logger.log('FileWriter', 'Writing message: ' + message)
                         self._output.write(message + '\n\n')
                         self._output.flush()
-                        buffer = messages[-1]  
+                    buffer = messages[-1]  
+                    self._logger.log('FileWriter', 'Buffer trimmed. Buffer = ' + buffer)
                     
                 
     def terminate(self):
