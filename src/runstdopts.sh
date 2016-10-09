@@ -1,2 +1,2 @@
 ./setuppath.sh
-python3 application.py
+python3 morsecode/application.py

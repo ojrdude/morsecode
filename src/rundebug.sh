@@ -1,2 +1,2 @@
 ./setuppath.sh
-python3 application.py --debug
+python3 morsecode/application.py --debug
