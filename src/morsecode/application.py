@@ -14,7 +14,7 @@ from morsecode.logging.logger import Logger
 
 class Application(object):
     
-    LOG_FILE = '/var/log/morsecode/log.log'
+    LOG_FILE = '/home/pi/morselog.log'
     
     def __init__(self, output_file, debug=False):
         """

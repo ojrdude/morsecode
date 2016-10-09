@@ -32,9 +32,9 @@ class Logger(object):
         """
         now = datetime.now()
         with open(self._log_file, 'a') as log_file:
-            log_file.write('{time} - {app}: {message}'.format(time=now,
+            log_file.write('{time} - {app}: {message}\n'.format(time=now,
                                                               app=application,
                                                               message=message))
         if self._debug:
             print('{app}: {message}'.format(app=application,
-                                            message=message)
+                                            message=message))
