@@ -2,7 +2,6 @@
 Takes a stream of letters and outputs to file.
 """
 from threading import Thread, Event
-from queue import Empty
 
 
 class FileWriter(Thread):

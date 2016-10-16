@@ -84,6 +84,6 @@ if __name__ == '__main__':
     arg_parser = ArgumentParser(prog='Morse Code', description='Morse Code Reader')
     arg_parser.add_argument('-o', '--outputfile', default='/home/pi/morsecodemsgs/messages.txt',
                             dest='output_file')
-    arg_parser.add_argument('-d', '--debug', default=False, dest='debug', type=bool)
+    arg_parser.add_argument('-d', '--debug', action='store_true', dest='debug')
     args = arg_parser.parse_args()
     sys.exit(Application(args.output_file, args.debug).main())
