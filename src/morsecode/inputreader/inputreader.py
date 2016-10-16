@@ -10,13 +10,6 @@ class InputReader(Thread):
     Listens to a switch for on/off (e.g. Raspberry Pi GPIO pin). Because this
     providing function can be passed in, this class is not dependent on the GPIO library.
     """
-    REL_DOT_DURATION = 1
-    REL_MID_LETTER_GAP = 1
-    REL_DASH_DURATION = 3
-    REL_LETTER_GAP = 3
-    REL_WORD_GAP = 7
-    STANDARD_DURATION_MS = 200
-    _ERROR_MARGIN = 1.3
 
     def __init__(self, morse_switch, code_to_letter_dict, msg_queue,
                  logger, debug=False):
@@ -74,7 +67,12 @@ class InputReader(Thread):
         self._logger.log('Input', 'Detecting Gap')
         start_time = datetime.now()
         while not self._morse_switch():
-            pass
+            difference = datetime.now() - start_time
+            if difference > timedelta(seconds = 13): # Fudge end of message
+                self._logger.log('Input', 'Very long pause treated as End of Message')
+                self._current_letter = ''
+                self._msg_queue.put('AR')
+                return
         end_time = datetime.now()
         difference = end_time - start_time
         if difference > timedelta(seconds=6.5): # About 7 seconds
