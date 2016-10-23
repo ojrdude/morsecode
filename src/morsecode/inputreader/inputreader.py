@@ -11,14 +11,17 @@ class InputReader(Thread):
     providing function can be passed in, this class is not dependent on the GPIO library.
     """
 
+    
     def __init__(self, morse_switch, code_to_letter_dict, msg_queue,
-                 logger, debug=False):
+                 logger, debug=False, config=None):
         """
         Constructor
         :param:morse_switch: The function to poll for True or False such as GPIO.input().
         :param:code_to_letter_dict A dictionary of letters to interpret Morse code with.
         :param:msg_queue The message queue to output to.
-        :param:_logger: A logging class to send logs to.
+        :param:logger: A logging class to send logs to.
+        :param:debug: True to print logging to stdout as well as log file.
+        :param:config: A dict containing all the timing values for the reader.
         """
         self._morse_switch = morse_switch
         self._codeDict = code_to_letter_dict
